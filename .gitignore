@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.direnv/
+.envrc.local
+result
+result-*
+.venv/
+.pytest_cache/
+# planning + orchestration scratch (kept local, like the storitad repo)
+/docs/superpowers/
+.superpowers/

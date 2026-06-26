@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "storitad-web"
+version = "0.1.0"
+description = "Browser capture/browse/edit webapp for the Storitad journal archive"
+authors = [{ name = "Bazza" }]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "python-multipart>=0.0.9",
+    "jinja2>=3.1",
+    "pyyaml>=6.0",
+]
+
+# [project.scripts] and the storitad-web console entry point are added in the
+# Nix-packaging task, once storitad_web.__main__ exists.
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["storitad_web*"]
+
+[tool.setuptools.package-data]
+storitad_web = ["templates/*.html", "static/*", "static/icons/*"]
