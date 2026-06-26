@@ -34,11 +34,11 @@ def test_replace_section_replaces_existing(tmp_path):
     assert "old transcript" not in out
     assert "old notes" in out
 
-def test_replace_section_appends_when_absent(tmp_path):
+def test_replace_section_appends_when_absent():
     out = mdfile.replace_section("## Transcript\n\nx\n", "Notes", "added")
     assert "## Notes" in out and "added" in out
 
-def test_replace_section_drops_when_empty(tmp_path):
+def test_replace_section_drops_when_empty():
     out = mdfile.replace_section("## Transcript\n\nx\n\n## Notes\n\nn\n", "Notes", "")
     assert "## Notes" not in out
 
@@ -56,3 +56,21 @@ def test_find_entry_md_by_basename(tmp_path):
     (root / "20260101-120000-voice.md").write_text(SAMPLE)
     found = mdfile.find_entry_md(tmp_path / "entries", "20260101-120000-voice")
     assert found is not None and found.name == "20260101-120000-voice.md"
+
+def test_write_fm_body_roundtrip_stable(tmp_path):
+    md = tmp_path / "entry.md"
+    body = "\n## Transcript\n\nx\n"
+    fm = {"id": "20260101-120000-voice", "subject": "Test"}
+    mdfile.write_fm(md, fm, body)
+    fm1, body1 = mdfile.load_fm(md)
+    mdfile.write_fm(md, fm1, body1)
+    _, body2 = mdfile.load_fm(md)
+    assert body1 == body2
+
+def test_find_entry_md_by_frontmatter_id(tmp_path):
+    root = tmp_path / "entries"
+    root.mkdir()
+    renamed = root / "renamed.md"
+    renamed.write_text(SAMPLE)  # frontmatter id: 20260101-120000-voice
+    found = mdfile.find_entry_md(root, "20260101-120000-voice")
+    assert found is not None and found == renamed

@@ -19,7 +19,7 @@ def write_fm(md: Path, fm: dict, body: str) -> None:
     md.write_text(
         "---\n"
         + yaml.safe_dump(fm, sort_keys=False, allow_unicode=True).rstrip()
-        + "\n---\n"
+        + "\n---\n\n"
         + body.lstrip("\n")
         + ("\n" if not body.endswith("\n") else "")
     )
@@ -36,7 +36,7 @@ def find_entry_md(entries_root: Path, entry_id: str) -> Path | None:
             _, fm, _ = text.split("---", 2)
             if (yaml.safe_load(fm) or {}).get("id") == entry_id:
                 return md
-        except Exception:
+        except (ValueError, yaml.YAMLError):
             continue
     return None
 
