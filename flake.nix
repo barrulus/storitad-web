@@ -12,7 +12,7 @@
         pkgs = nixpkgs.legacyPackages.${system};
         # Runtime + test Python deps. The package output (buildPythonApplication
         # wrapping whisper-cli + ffmpeg onto PATH) is added in the packaging task.
-        pythonEnv = pkgs.python311.withPackages (ps: with ps; [
+        pythonEnv = pkgs.python312.withPackages (ps: with ps; [
           fastapi uvicorn python-multipart jinja2 pyyaml pytest httpx
         ]);
       in
