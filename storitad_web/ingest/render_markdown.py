@@ -18,7 +18,7 @@ def entry_dir(root: Path, captured_at: str) -> Path:
     return root / "entries" / f"{dt.year:04d}" / f"{dt.month:02d}"
 
 
-def _frontmatter(sc: Sidecar, server_transcript: str | None, server_model: str | None) -> dict:
+def _frontmatter(sc: Sidecar, server_transcript: str | None, server_model: str | None, author: str | None = None) -> dict:
     loc = sc.location
     fm: dict = {
         "id": sc.id,
@@ -27,6 +27,7 @@ def _frontmatter(sc: Sidecar, server_transcript: str | None, server_model: str |
         "timezone": sc.raw.get("timezone"),
         "duration_seconds": sc.duration_seconds,
         "subject": sc.subject,
+        "author": author,
         "recipients": sc.recipients,
         "mood": sc.mood,
         "tags": sc.tags,
@@ -54,13 +55,14 @@ def write_entry(
     media_src: Path,
     server_transcript: str | None,
     server_model: str | None,
+    author: str | None = None,
 ) -> Path:
     out_dir = entry_dir(root, sc.captured_at)
     out_dir.mkdir(parents=True, exist_ok=True)
     md_path = out_dir / f"{sc.basename}.md"
     media_dst = out_dir / sc.media_file
 
-    fm = _frontmatter(sc, server_transcript, server_model)
+    fm = _frontmatter(sc, server_transcript, server_model, author)
     body_transcript = (server_transcript or "").strip() or "(no transcript)"
 
     parts = [
