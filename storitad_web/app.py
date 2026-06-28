@@ -2,13 +2,19 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Callable
 
-from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
-from . import auth, store
+from . import auth, index, store
 from .config import AppConfig
 from .entries import CaptureMeta, synthesize_sidecar
+
+_PKG_DIR = Path(__file__).resolve().parent
 
 
 def _parse_captured_at(value: str | None) -> datetime:
@@ -52,6 +58,30 @@ def create_app(cfg: AppConfig, enqueue: Callable[[str], None] | None = None) -> 
         store.write_capture(cfg, sc, media_bytes, author=owner)
         enqueue(sc.id)
         return {"id": sc.id}
+
+    templates = Jinja2Templates(directory=str(_PKG_DIR / "templates"))
+    application.mount("/static", StaticFiles(directory=str(_PKG_DIR / "static")), name="static")
+
+    @application.get("/", response_class=HTMLResponse)
+    @application.get("/entries", response_class=HTMLResponse)
+    async def browse(request: Request, owner: str = Depends(owner_dep)):
+        return templates.TemplateResponse(
+            request, "browse.html", {"entries": index.list_entries(cfg)})
+
+    @application.get("/entries/{entry_id}", response_class=HTMLResponse)
+    async def detail(entry_id: str, request: Request, owner: str = Depends(owner_dep)):
+        entry = index.load_entry(cfg, entry_id)
+        if entry is None:
+            raise HTTPException(status_code=404, detail="entry not found")
+        return templates.TemplateResponse(request, "detail.html", {"entry": entry})
+
+    @application.get("/media/{year}/{month}/{filename}")
+    async def media(year: str, month: str, filename: str, owner: str = Depends(owner_dep)):
+        path = (cfg.archive_root / "entries" / year / month / filename).resolve()
+        root = (cfg.archive_root / "entries").resolve()
+        if root not in path.parents or not path.is_file():
+            raise HTTPException(status_code=404, detail="media not found")
+        return FileResponse(path)
 
     application.state.cfg = cfg
     return application

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ entry.fm.subject }} — Storitad{% endblock %}
+{% block content %}
+<article>
+  <h1>{{ entry.fm.subject }}</h1>
+  <p class="meta">{{ entry.fm.captured_at }} · {{ entry.fm.type }}
+     {% if entry.fm.mood %}· {{ entry.fm.mood }}{% endif %}</p>
+  {% if entry.media_url %}
+    {% if entry.fm.type == 'video' %}
+      <video controls src="{{ entry.media_url }}" playsinline></video>
+    {% else %}
+      <audio controls src="{{ entry.media_url }}"></audio>
+    {% endif %}
+  {% endif %}
+  <h2>Transcript</h2>
+  <p>{{ entry.transcript or '(transcribing…)' }}</p>
+  {% if entry.notes %}<h2>Notes</h2><p>{{ entry.notes }}</p>{% endif %}
+  <p><a href="/entries/{{ entry.fm.id }}/edit">Edit</a></p>
+</article>
+{% endblock %}

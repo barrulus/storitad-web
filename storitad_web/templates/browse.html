@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Browse — Storitad{% endblock %}
+{% block content %}
+<h1>Entries</h1>
+<ul class="entries">
+{% for e in entries %}
+  <li><a href="/entries/{{ e.id }}">
+    <span class="subject">{{ e.subject }}</span>
+    <span class="meta">{{ e.captured_at }} · {{ e.type }}{% if e.tags %} · {{ e.tags|join(', ') }}{% endif %}</span>
+  </a></li>
+{% else %}
+  <li>No entries yet. <a href="/">Record one.</a></li>
+{% endfor %}
+</ul>
+{% endblock %}
