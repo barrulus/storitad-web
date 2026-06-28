@@ -1,15 +1,29 @@
-let mediaType = "VOICE", stream, recorder, chunks = [], blob, mime, started;
+let mediaType = "VOICE", stream, recorder, chunks = [], blob, mime, started, stopped;
 
 const $ = (id) => document.getElementById(id);
 
 async function loadRecipients() {
   const list = await (await fetch("/api/recipients")).json();
-  $("recipients").innerHTML = "<legend>Recipients</legend>" + list.map(r =>
-    `<label><input type="checkbox" name="recipient" value="${r.id}"
-      ${r.id === "family" ? "checked" : ""}>${r.emoji} ${r.label}</label>`).join("");
+  const fieldset = $("recipients");
+  const legend = document.createElement("legend");
+  legend.textContent = "Recipients";
+  const labels = list.map(r => {
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    input.type = "checkbox"; input.name = "recipient"; input.value = r.id;
+    if (r.id === "family") input.checked = true;
+    label.appendChild(input);
+    label.append(`${r.emoji} ${r.label}`);
+    return label;
+  });
+  fieldset.replaceChildren(legend, ...labels);
   const tags = await (await fetch("/api/recent-tags")).json();
-  $("recent-tags").innerHTML = tags.map(t =>
-    `<button type="button" class="chip" data-tag="${t}">${t}</button>`).join("");
+  const chips = tags.map(t => {
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "chip"; btn.dataset.tag = t; btn.textContent = t;
+    return btn;
+  });
+  $("recent-tags").replaceChildren(...chips);
   $("recent-tags").onclick = (e) => {
     if (!e.target.dataset.tag) return;
     const input = document.querySelector('[name=tags]');
@@ -29,7 +43,13 @@ function pickMime() {
 async function startRecording() {
   const constraints = mediaType === "VIDEO"
     ? { audio: true, video: { facingMode: "user" } } : { audio: true };
-  stream = await navigator.mediaDevices.getUserMedia(constraints);
+  try {
+    stream = await navigator.mediaDevices.getUserMedia(constraints);
+  } catch (err) {
+    alert("Microphone/camera access is required: " + err);
+    $("record").hidden = false; $("stop").hidden = true;
+    return;
+  }
   if (mediaType === "VIDEO") {
     $("preview").srcObject = stream; $("preview").hidden = false; $("preview").play();
   }
@@ -44,6 +64,7 @@ async function startRecording() {
 }
 
 function onStop() {
+  stopped = Date.now();
   blob = new Blob(chunks, { type: mime || chunks[0]?.type || "application/octet-stream" });
   stream.getTracks().forEach(t => t.stop());
   if (mediaType !== "VIDEO") {
@@ -66,7 +87,7 @@ async function submit(e) {
   const recipients = [...document.querySelectorAll('[name=recipient]:checked')].map(c => c.value);
   const meta = {
     subject: f.subject.value, mediaType, mimeType: blob.type,
-    durationSeconds: Math.round((Date.now() - started) / 1000),
+    durationSeconds: Math.round((stopped - started) / 1000),
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     recipients, mood: f.mood.value || null,
     tags: f.tags.value.split(",").map(s => s.trim()).filter(Boolean),
