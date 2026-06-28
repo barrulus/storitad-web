@@ -20,19 +20,13 @@ def _parse_captured_at(value: str | None) -> datetime:
 def create_app(cfg: AppConfig, enqueue: Callable[[str], None] | None = None) -> FastAPI:
     enqueue = enqueue or (lambda _eid: None)
     application = FastAPI(title="Storitad Web")
-
-    # Build a per-app owner dependency that uses cfg.owners (not the module-level default).
-    def _require_owner(request: Request) -> str:
-        email = request.headers.get(auth.OWNER_HEADER, "").strip().lower()
-        if email and email in [o.lower() for o in cfg.owners]:
-            return email
-        raise HTTPException(status_code=403, detail="not an owner")
+    owner_dep = auth.make_require_owner(cfg.owners)
 
     @application.post("/api/entries", status_code=201)
     async def post_entry(
         meta: str = Form(...),
         media: UploadFile = File(...),
-        owner: str = Depends(_require_owner),
+        owner: str = Depends(owner_dep),
     ):
         try:
             m = json.loads(meta)

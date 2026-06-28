@@ -18,8 +18,16 @@ def _owners() -> list[str]:
     return _cfg.owners
 
 
+def make_require_owner(owners: list[str]):
+    """Return a FastAPI dependency that authorises against `owners`."""
+    allowed = [o.lower() for o in owners]
+    def _require_owner(request: Request) -> str:
+        email = request.headers.get(OWNER_HEADER, "").strip().lower()
+        if email and email in allowed:
+            return email
+        raise HTTPException(status_code=403, detail="not an owner")
+    return _require_owner
+
+
 def require_owner(request: Request) -> str:
-    email = request.headers.get(OWNER_HEADER, "").strip().lower()
-    if email and email in [o.lower() for o in _owners()]:
-        return email
-    raise HTTPException(status_code=403, detail="not an owner")
+    return make_require_owner(_owners())(request)
