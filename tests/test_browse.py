@@ -47,3 +47,21 @@ def test_media_requires_owner(tmp_path):
     client.headers.update({"X-Auth-Request-Email": "stranger@x.com"})
     r = client.get("/media/2026/01/20260102-090807-voice.m4a")
     assert r.status_code == 403
+
+def test_media_no_path_traversal(tmp_path):
+    client, cfg = _client(tmp_path)
+    _capture(client, "x")
+    # plant a secret OUTSIDE the entries dir to prove it is never served
+    secret = cfg.archive_root / "secret.txt"
+    secret.write_text("TOPSECRET")
+    for bad in [
+        "/media/../../secret.txt",
+        "/media/2026/01/%2e%2e%2f%2e%2e%2fsecret.txt",
+        "/media/2026/01/..%2f..%2fsecret.txt",
+    ]:
+        r = client.get(bad)
+        assert r.status_code == 404, f"{bad} -> {r.status_code}"
+        assert "TOPSECRET" not in r.text
+
+def test_root_route_renders(tmp_path):
+    assert _client(tmp_path)[0].get("/").status_code == 200
