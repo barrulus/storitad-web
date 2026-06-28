@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
@@ -13,6 +14,7 @@ from fastapi.templating import Jinja2Templates
 from . import auth, index, store
 from .config import AppConfig
 from .entries import CaptureMeta, synthesize_sidecar
+from .transcription import Worker
 
 _PKG_DIR = Path(__file__).resolve().parent
 
@@ -24,8 +26,19 @@ def _parse_captured_at(value: str | None) -> datetime:
 
 
 def create_app(cfg: AppConfig, enqueue: Callable[[str], None] | None = None) -> FastAPI:
-    enqueue = enqueue or (lambda _eid: None)
-    application = FastAPI(title="Storitad Web")
+    if enqueue is None:
+        worker = Worker(cfg)
+
+        @asynccontextmanager
+        async def lifespan(app):
+            worker.start()
+            yield
+            await worker.stop()
+
+        application = FastAPI(title="Storitad Web", lifespan=lifespan)
+        enqueue = worker.enqueue
+    else:
+        application = FastAPI(title="Storitad Web")
     owner_dep = auth.make_require_owner(cfg.owners)
 
     @application.post("/api/entries", status_code=201)
