@@ -72,6 +72,16 @@ def create_app(cfg: AppConfig, enqueue: Callable[[str], None] | None = None) -> 
         enqueue(sc.id)
         return {"id": sc.id}
 
+    @application.put("/api/entries/{entry_id}", status_code=204)
+    async def put_entry(entry_id: str, payload: dict, owner: str = Depends(owner_dep)):
+        if not store.edit_entry(cfg, entry_id, payload):
+            raise HTTPException(status_code=404, detail="entry not found")
+
+    @application.delete("/api/entries/{entry_id}", status_code=204)
+    async def delete_entry_route(entry_id: str, owner: str = Depends(owner_dep)):
+        if not store.delete_entry(cfg, entry_id):
+            raise HTTPException(status_code=404, detail="entry not found")
+
     templates = Jinja2Templates(directory=str(_PKG_DIR / "templates"))
     application.mount("/static", StaticFiles(directory=str(_PKG_DIR / "static")), name="static")
 
