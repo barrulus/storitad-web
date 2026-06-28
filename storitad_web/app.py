@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timezone
 from typing import Callable
 
-from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 
 from . import auth, store
 from .config import AppConfig
