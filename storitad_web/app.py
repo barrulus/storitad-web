@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -68,7 +69,7 @@ def create_app(cfg: AppConfig, enqueue: Callable[[str], None] | None = None) -> 
         )
         sc = synthesize_sidecar(cm, cfg.staging)
         media_bytes = await media.read()
-        store.write_capture(cfg, sc, media_bytes, author=owner)
+        await asyncio.to_thread(store.write_capture, cfg, sc, media_bytes, author=owner)
         enqueue(sc.id)
         return {"id": sc.id}
 

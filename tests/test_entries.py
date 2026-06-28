@@ -38,3 +38,11 @@ def test_synthesize_sidecar_video_ext(tmp_path):
 def test_capturedat_is_iso_z(tmp_path):
     sc = entries.synthesize_sidecar(_meta(), tmp_path)
     assert sc.raw["capturedAt"] == "2026-01-02T09:08:07Z"
+
+def test_webm_voice_ext(tmp_path):
+    sc = entries.synthesize_sidecar(_meta(media_type="VOICE", mime_type="audio/webm"), tmp_path)
+    assert sc.media_file.endswith(".webm")
+
+def test_webm_video_ext(tmp_path):
+    sc = entries.synthesize_sidecar(_meta(media_type="VIDEO", mime_type="video/webm"), tmp_path)
+    assert sc.media_file.endswith(".webm")

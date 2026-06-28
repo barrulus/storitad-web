@@ -13,7 +13,7 @@
     {% endif %}
   {% endif %}
   <h2>Transcript</h2>
-  <p>{{ entry.transcript or '(transcribing…)' }}</p>
+  <p>{% if entry.transcript and entry.transcript != '(no transcript)' %}{{ entry.transcript }}{% else %}(transcribing…){% endif %}</p>
   {% if entry.notes %}<h2>Notes</h2><p>{{ entry.notes }}</p>{% endif %}
   <p><a href="/entries/{{ entry.fm.id }}/edit">Edit</a></p>
 </article>

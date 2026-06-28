@@ -27,7 +27,9 @@ class CaptureMeta:
     device: str = "web"
 
 
-def ext_for(media_type: str) -> str:
+def ext_for(media_type: str, mime_type: str | None = None) -> str:
+    if mime_type and "webm" in mime_type.lower():
+        return "webm"
     return "mp4" if media_type.upper() == "VIDEO" else "m4a"
 
 
@@ -43,7 +45,7 @@ def _iso_z(dt: datetime) -> str:
 
 def synthesize_sidecar(meta: CaptureMeta, staging_dir: Path) -> sidecar_mod.Sidecar:
     entry_id = make_entry_id(meta.captured_at, meta.media_type)
-    media_file = f"{entry_id}.{ext_for(meta.media_type)}"
+    media_file = f"{entry_id}.{ext_for(meta.media_type, meta.mime_type)}"
     raw = {
         "id": entry_id,
         "version": 2,
