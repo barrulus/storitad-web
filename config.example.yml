@@ -1,0 +1,10 @@
+# config.example.yml — copy to ~/.config/storitad/web.yml (or set STORITAD_WEB_CONFIG)
+archive_root: /srv/data/storitad
+# staging / trash default to <archive_root>/staging and /trash
+owners:
+  - b@rry.im
+whisper_bin: whisper-cli
+whisper_model: /srv/data/storitad/models/ggml-small.en.bin
+whisper_model_name: whisper-small.en
+recipients_path: /srv/data/storitad/recipients.json
+port: 30100

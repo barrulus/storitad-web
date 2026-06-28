@@ -16,8 +16,8 @@ dependencies = [
     "pyyaml>=6.0",
 ]
 
-# [project.scripts] and the storitad-web console entry point are added in the
-# Nix-packaging task, once storitad_web.__main__ exists.
+[project.scripts]
+storitad-web = "storitad_web.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

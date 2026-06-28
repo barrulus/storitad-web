@@ -15,6 +15,25 @@
         pythonEnv = pkgs.python312.withPackages (ps: with ps; [
           fastapi uvicorn python-multipart jinja2 pyyaml pytest httpx
         ]);
+        storitadWeb = pkgs.python312Packages.buildPythonApplication {
+          pname = "storitad-web";
+          version = "0.1.0";
+          pyproject = true;
+          src = ./.;
+          build-system = [ pkgs.python312Packages.setuptools ];
+          dependencies = with pkgs.python312Packages; [
+            fastapi uvicorn python-multipart jinja2 pyyaml
+          ];
+          nativeBuildInputs = [ pkgs.makeWrapper ];
+          postFixup = ''
+            wrapProgram $out/bin/storitad-web \
+              --prefix PATH : ${pkgs.lib.makeBinPath [
+                pkgs.whisper-cpp
+                pkgs.ffmpeg-headless
+              ]}
+          '';
+          doCheck = false;
+        };
       in
       {
         devShells.default = pkgs.mkShell {
@@ -24,5 +43,8 @@
             pkgs.whisper-cpp
           ];
         };
+        packages.default = storitadWeb;
+        packages.storitad-web = storitadWeb;
+        apps.default = { type = "app"; program = "${storitadWeb}/bin/storitad-web"; };
       });
 }
