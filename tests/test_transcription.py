@@ -41,3 +41,21 @@ def test_pending_ids_excludes_filled(tmp_path):
     eid = _make_entry(cfg)
     transcription.fill_transcript(cfg, eid, transcribe_fn=lambda media, c: "done")
     assert eid not in transcription.pending_ids(cfg)
+
+def test_worker_drains_and_stops(tmp_path):
+    import asyncio
+    from storitad_web.transcription import Worker
+
+    cfg = _cfg(tmp_path)
+    eid = _make_entry(cfg)
+
+    async def run():
+        w = Worker(cfg, transcribe_fn=lambda media, c: "worker said hi")
+        w.start()
+        await w.queue.join()
+        await w.stop()
+
+    asyncio.run(run())
+
+    md = cfg.archive_root / "entries" / "2026" / "01" / f"{eid}.md"
+    assert "worker said hi" in md.read_text()

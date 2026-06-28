@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from pathlib import Path
 from typing import Callable
+
+log = logging.getLogger(__name__)
 
 from .ingest import mdfile
 from .ingest.transcribe import TranscriberConfig, transcribe as _whisper
@@ -80,8 +83,8 @@ class Worker:
             try:
                 await asyncio.to_thread(
                     fill_transcript, self.cfg, entry_id, self.transcribe_fn)
-            except Exception as e:
-                print(f"transcription failed for {entry_id}: {e}")
+            except Exception:
+                log.exception("transcription failed for %s", entry_id)
             finally:
                 self.queue.task_done()
 
@@ -93,3 +96,7 @@ class Worker:
     async def stop(self) -> None:
         if self._task:
             self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
