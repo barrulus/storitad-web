@@ -1,6 +1,7 @@
 # storitad_web/index.py
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -47,6 +48,13 @@ def list_entries(cfg: AppConfig) -> list[EntrySummary]:
         ))
     out.sort(key=lambda e: e.captured_at, reverse=True)
     return out
+
+
+def recent_tags(cfg: AppConfig, limit: int = 12) -> list[str]:
+    counter: Counter[str] = Counter()
+    for e in list_entries(cfg):
+        counter.update(e.tags)
+    return [t for t, _ in counter.most_common(limit)]
 
 
 def _section(body: str, heading: str) -> str:

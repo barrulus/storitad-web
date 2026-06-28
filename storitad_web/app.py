@@ -85,11 +85,31 @@ def create_app(cfg: AppConfig, enqueue: Callable[[str], None] | None = None) -> 
     templates = Jinja2Templates(directory=str(_PKG_DIR / "templates"))
     application.mount("/static", StaticFiles(directory=str(_PKG_DIR / "static")), name="static")
 
+    from . import recipients as recipients_mod
+
     @application.get("/", response_class=HTMLResponse)
+    async def capture_screen(request: Request, owner: str = Depends(owner_dep)):
+        return templates.TemplateResponse(request, "capture.html", {})
+
     @application.get("/entries", response_class=HTMLResponse)
     async def browse(request: Request, owner: str = Depends(owner_dep)):
         return templates.TemplateResponse(
             request, "browse.html", {"entries": index.list_entries(cfg)})
+
+    @application.get("/api/recipients")
+    async def api_recipients(owner: str = Depends(owner_dep)):
+        return recipients_mod.load(cfg)
+
+    @application.get("/api/recent-tags")
+    async def api_recent_tags(owner: str = Depends(owner_dep)):
+        return index.recent_tags(cfg)
+
+    @application.get("/entries/{entry_id}/edit", response_class=HTMLResponse)
+    async def edit_form(entry_id: str, request: Request, owner: str = Depends(owner_dep)):
+        entry = index.load_entry(cfg, entry_id)
+        if entry is None:
+            raise HTTPException(status_code=404, detail="entry not found")
+        return templates.TemplateResponse(request, "edit.html", {"entry": entry})
 
     @application.get("/entries/{entry_id}", response_class=HTMLResponse)
     async def detail(entry_id: str, request: Request, owner: str = Depends(owner_dep)):

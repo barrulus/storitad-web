@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Record — Storitad{% endblock %}
+{% block content %}
+<h1>Record</h1>
+<div class="mode">
+  <button id="mode-voice" class="active">🎙 Voice</button>
+  <button id="mode-video">🎬 Video</button>
+</div>
+<video id="preview" playsinline muted hidden></video>
+<div class="controls">
+  <button id="record">● Record</button>
+  <button id="stop" hidden>■ Stop</button>
+  <span id="timer">0:00</span>
+</div>
+<audio id="playback" controls hidden></audio>
+<form id="meta" hidden>
+  <label>Subject <input name="subject" required></label>
+  <fieldset id="recipients"><legend>Recipients</legend></fieldset>
+  <label>Mood <input name="mood" placeholder="happy"></label>
+  <label>Tags <input name="tags" placeholder="comma,separated"></label>
+  <div id="recent-tags"></div>
+  <label>Notes <textarea name="notes"></textarea></label>
+  <label><input type="checkbox" id="use-location"> Attach location</label>
+  <button type="submit">Save entry</button>
+  <progress id="upload" hidden max="100"></progress>
+</form>
+<script src="/static/app.js"></script>
+{% endblock %}
