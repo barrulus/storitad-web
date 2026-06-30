@@ -1,15 +1,18 @@
 {% extends "base.html" %}
 {% block title %}Edit — Storitad{% endblock %}
+{% block appbar %}
+  <a class="appbar-back" href="/entries/{{ entry.fm.id }}">‹</a>
+  <span class="appbar-title">Edit</span>
+{% endblock %}
 {% block content %}
-<h1>Edit entry</h1>
-<form id="edit" data-id="{{ entry.fm.id }}">
-  <label>Subject <input name="subject" value="{{ entry.fm.subject }}"></label>
-  <label>Mood <input name="mood" value="{{ entry.fm.mood or '' }}"></label>
-  <label>Tags <input name="tags" value="{{ entry.fm.tags|join(', ') }}"></label>
-  <label>Transcript <textarea name="transcript" rows="6">{{ entry.transcript }}</textarea></label>
-  <label>Notes <textarea name="notes" rows="4">{{ entry.notes }}</textarea></label>
-  <button type="submit">Save</button>
-  <button type="button" id="delete">Delete</button>
+<form id="edit" class="card" data-id="{{ entry.fm.id }}">
+  <label>Subject</label><input name="subject" value="{{ entry.fm.subject }}">
+  <label>Mood</label><input name="mood" value="{{ entry.fm.mood or '' }}">
+  <label>Tags</label><input name="tags" value="{{ entry.fm.tags|join(', ') }}">
+  <label>Transcript</label><textarea name="transcript" rows="6">{{ entry.transcript }}</textarea>
+  <label>Notes</label><textarea name="notes" rows="4">{{ entry.notes }}</textarea>
+  <button type="submit" class="btn-primary">Save</button>
+  <button type="button" id="delete" class="btn btn-danger">Delete</button>
 </form>
 <script src="/static/edit.js"></script>
 {% endblock %}
