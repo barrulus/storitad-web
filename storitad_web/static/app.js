@@ -4,19 +4,15 @@ const $ = (id) => document.getElementById(id);
 
 async function loadRecipients() {
   const list = await (await fetch("/api/recipients")).json();
-  const fieldset = $("recipients");
-  const legend = document.createElement("legend");
-  legend.textContent = "Recipients";
   const labels = list.map(r => {
-    const label = document.createElement("label");
-    const input = document.createElement("input");
-    input.type = "checkbox"; input.name = "recipient"; input.value = r.id;
-    if (r.id === "family") input.checked = true;
-    label.appendChild(input);
-    label.append(`${r.emoji} ${r.label}`);
-    return label;
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "chip"; btn.dataset.recipient = r.id;
+    btn.textContent = `${r.emoji} ${r.label}`;
+    if (r.id === "family") btn.classList.add("active");
+    btn.onclick = () => btn.classList.toggle("active");
+    return btn;
   });
-  fieldset.replaceChildren(legend, ...labels);
+  $("recipients").replaceChildren(...labels);
   const tags = await (await fetch("/api/recent-tags")).json();
   const chips = tags.map(t => {
     const btn = document.createElement("button");
@@ -47,7 +43,7 @@ async function startRecording() {
     stream = await navigator.mediaDevices.getUserMedia(constraints);
   } catch (err) {
     alert("Microphone/camera access is required: " + err);
-    $("record").hidden = false; $("stop").hidden = true;
+    $("record").hidden = false; $("stop").hidden = true; $("record").classList.remove("recording");
     return;
   }
   if (mediaType === "VIDEO") {
@@ -70,7 +66,7 @@ function onStop() {
   if (mediaType !== "VIDEO") {
     $("playback").src = URL.createObjectURL(blob); $("playback").hidden = false;
   }
-  $("meta").hidden = false;
+  showMeta();
 }
 
 async function maybeLocation() {
@@ -84,7 +80,7 @@ async function maybeLocation() {
 async function submit(e) {
   e.preventDefault();
   const f = e.target;
-  const recipients = [...document.querySelectorAll('[name=recipient]:checked')].map(c => c.value);
+  const recipients = [...document.querySelectorAll('#recipients .chip.active')].map(c => c.dataset.recipient);
   const meta = {
     subject: f.subject.value, mediaType, mimeType: blob.type,
     durationSeconds: Math.round((stopped - started) / 1000),
@@ -109,10 +105,43 @@ function tick() {
   $("timer").textContent = Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
 }
 
+function showMeta() { $("meta").hidden = false; }
+
+async function probeDuration(file) {
+  const url = URL.createObjectURL(file);
+  const el = document.createElement(file.type.startsWith("video/") ? "video" : "audio");
+  return await new Promise((res) => {
+    el.preload = "metadata"; el.src = url;
+    el.onloadedmetadata = () => { res(Number.isFinite(el.duration) ? Math.round(el.duration) : 0); URL.revokeObjectURL(url); };
+    el.onerror = () => { res(0); URL.revokeObjectURL(url); };
+  });
+}
+
+async function loadFile(file) {
+  blob = file;
+  mediaType = file.type.startsWith("video/") ? "VIDEO" : "VOICE";
+  mime = file.type || "";
+  const secs = await probeDuration(file);
+  started = file.lastModified || Date.now();
+  stopped = started + secs * 1000;
+  if (mediaType !== "VIDEO") { $("playback").src = URL.createObjectURL(blob); $("playback").hidden = false; }
+  showMeta();
+}
+
 $("mode-voice").onclick = () => { mediaType = "VOICE"; $("mode-voice").classList.add("active"); $("mode-video").classList.remove("active"); };
 $("mode-video").onclick = () => { mediaType = "VIDEO"; $("mode-video").classList.add("active"); $("mode-voice").classList.remove("active"); };
-$("record").onclick = startRecording;
-$("stop").onclick = () => { recorder.stop(); $("stop").hidden = true; $("record").hidden = false; };
+$("record").onclick = () => { startRecording(); $("record").classList.add("recording"); };
+$("stop").onclick = () => { recorder.stop(); $("stop").hidden = true; $("record").hidden = false; $("record").classList.remove("recording"); };
+$("pick-file").onclick = () => $("file-input").click();
+$("file-input").onchange = (e) => { if (e.target.files[0]) loadFile(e.target.files[0]); };
+$("mood-quick").onclick = (e) => {
+  const m = e.target.dataset.mood; if (!m) return;
+  document.querySelector('[name=mood]').value = m;
+};
+
+const h = new Date().getHours();
+$("greeting").textContent = h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+
 $("meta").onsubmit = submit;
 setInterval(tick, 250);
 loadRecipients();
