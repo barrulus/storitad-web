@@ -3,13 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#C45A3B">
   <title>{% block title %}Storitad{% endblock %}</title>
-  <link rel="manifest" href="/static/manifest.webmanifest">
+  <link rel="manifest" href="/static/manifest.webmanifest" crossorigin="use-credentials">
+  <link rel="icon" href="/static/icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <header><a href="/">● Storitad</a> <nav><a href="/entries">Browse</a> <a href="/">Record</a></nav></header>
-  <main>{% block content %}{% endblock %}</main>
+  <header class="appbar">{% block appbar %}<span class="appbar-title brand">● Storitad</span>{% endblock %}</header>
+  <main class="screen">{% block content %}{% endblock %}</main>
+  <nav class="tabbar">
+    <a class="tab {% if active_tab == 'memories' %}active{% endif %}" href="/entries">
+      <span class="tab-ico">☰</span><span class="tab-label">Memories</span></a>
+    <a class="tab tab-primary {% if active_tab == 'record' %}active{% endif %}" href="/">
+      <span class="tab-ico">●</span><span class="tab-label">Record</span></a>
+  </nav>
 </body>
 </html>

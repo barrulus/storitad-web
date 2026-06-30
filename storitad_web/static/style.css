@@ -1,20 +1,86 @@
 /* storitad_web/static/style.css */
-:root { color-scheme: light dark; --pad: 1rem; }
-* { box-sizing: border-box; }
-body { font: 17px/1.5 -apple-system, system-ui, sans-serif; margin: 0; }
-header { display: flex; gap: 1rem; align-items: baseline; padding: var(--pad); border-bottom: 1px solid #8884; }
-header a { text-decoration: none; font-weight: 600; }
-main { max-width: 680px; margin: 0 auto; padding: var(--pad); }
-.mode button, .controls button { font-size: 1rem; padding: .6rem 1rem; border-radius: .6rem; border: 1px solid #8886; background: #8881; }
-.mode button.active { background: #4f46e5; color: #fff; }
-#record { background: #dc2626; color: #fff; }
-form label { display: block; margin: .75rem 0; }
-input, textarea { width: 100%; padding: .55rem; border-radius: .5rem; border: 1px solid #8886; font: inherit; }
-fieldset label { display: inline-flex; gap: .3rem; margin: .25rem .5rem .25rem 0; width: auto; }
-.chip { border: 1px solid #8886; border-radius: 1rem; padding: .2rem .7rem; margin: .15rem; background: #8881; }
-ul.entries { list-style: none; padding: 0; }
-ul.entries a { display: block; padding: .8rem 0; border-bottom: 1px solid #8883; text-decoration: none; }
-ul.entries .subject { display: block; font-weight: 600; }
-ul.entries .meta, article .meta { color: #8889; font-size: .85rem; }
-audio, video { width: 100%; margin: 1rem 0; border-radius: .6rem; }
-button { cursor: pointer; }
+:root{
+  --bg:#FBF6EE; --surface:#FFFFFF; --border:#EFE6D8;
+  --ink:#322B25; --muted:#6E635A;
+  --accent:#C45A3B; --accent-soft:#F3E4DB; --record:#D7372B; --success:#5B8C5A;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,system-ui,sans-serif;
+  --pad:1rem; --radius:16px; --shadow:0 1px 3px rgba(50,40,30,.08);
+  --tabbar-h:64px;
+}
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0;font:17px/1.5 var(--sans);color:var(--ink);background:var(--bg)}
+h1,h2,h3,.brand{font-family:var(--serif);font-weight:600;line-height:1.2}
+
+.appbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:.5rem;
+  min-height:52px;padding:.6rem var(--pad);background:var(--bg);border-bottom:1px solid var(--border)}
+.appbar-title{font-size:1.15rem}
+.appbar .brand{color:var(--accent)}
+.appbar-back{text-decoration:none;color:var(--ink);font-size:1.5rem;line-height:1}
+.appbar-action{margin-left:auto;text-decoration:none;color:var(--accent);font-weight:600}
+
+main.screen{max-width:680px;margin:0 auto;padding:var(--pad);
+  padding-bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 1rem)}
+
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;
+  border-top:1px solid var(--border);background:var(--surface);
+  padding-bottom:env(safe-area-inset-bottom)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;min-height:var(--tabbar-h);text-decoration:none;color:var(--muted);font-size:.75rem}
+.tab .tab-ico{font-size:1.2rem;line-height:1}
+.tab.active{color:var(--accent)}
+.tab-primary .tab-ico{color:var(--record)}
+
+/* generic controls */
+button{cursor:pointer;font:inherit}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;
+  padding:.7rem 1.1rem;border-radius:12px;border:1px solid var(--border);
+  background:var(--surface);color:var(--ink)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;width:100%}
+.btn-danger{background:transparent;border-color:#d9534f55;color:#b3261e}
+input,textarea{width:100%;padding:.6rem;border-radius:12px;border:1px solid var(--border);
+  font:inherit;background:var(--surface);color:var(--ink)}
+label{display:block;margin:.85rem 0 .2rem;color:var(--muted);font-size:.9rem}
+audio,video{width:100%;margin:1rem 0;border-radius:12px}
+
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:.4rem}
+.chip{border:1px solid var(--border);border-radius:999px;padding:.3rem .8rem;
+  background:var(--surface);color:var(--ink);font-size:.9rem}
+.chip.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+
+/* segmented mode toggle */
+.segmented{display:inline-flex;background:var(--accent-soft);border-radius:999px;padding:3px;margin:.5rem 0}
+.segmented button{border:0;background:transparent;color:var(--muted);border-radius:999px;padding:.45rem 1rem}
+.segmented button.active{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+
+/* record hero */
+.record-hero{display:flex;flex-direction:column;align-items:center;gap:.6rem;margin:1.5rem 0}
+#record,#stop{width:96px;height:96px;border-radius:999px;border:0;color:#fff;font-size:1rem;
+  background:var(--record);box-shadow:var(--shadow)}
+#record.recording{animation:pulse 1.4s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 #d7372b66}70%{box-shadow:0 0 0 18px #d7372b00}100%{box-shadow:0 0 0 0 #d7372b00}}
+#timer{font-variant-numeric:tabular-nums;color:var(--muted)}
+.upload-link{background:none;border:0;color:var(--accent);text-decoration:underline}
+
+/* details / generic card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:var(--pad);margin:1rem 0}
+
+/* memories list */
+.search{margin:.5rem 0 1rem}
+.date-group{margin:1.2rem 0 .4rem;color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;list-style:none}
+.entries{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.6rem}
+.entry-card{display:block;text-decoration:none;color:inherit;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:.9rem 1rem}
+.entry-card .subject{font-family:var(--serif);font-weight:600;display:block}
+.entry-card .meta{color:var(--muted);font-size:.85rem}
+.badge{display:inline-block;font-size:.72rem;padding:.1rem .5rem;border-radius:999px;
+  background:var(--accent-soft);color:var(--accent);margin-left:.3rem}
+.empty{text-align:center;color:var(--muted);padding:3rem 1rem}
+.empty .btn-primary{width:auto;margin-top:1rem}
+
+/* detail */
+.meta{color:var(--muted);font-size:.9rem}
+.pending{color:var(--muted);font-style:italic}
