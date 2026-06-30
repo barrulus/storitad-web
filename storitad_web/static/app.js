@@ -1,6 +1,46 @@
 let mediaType = "VOICE", stream, recorder, chunks = [], blob, mime, started, stopped;
+let previewStream = null, selectedDeviceId = "";
 
 const $ = (id) => document.getElementById(id);
+
+function videoConstraints() {
+  return selectedDeviceId
+    ? { deviceId: { exact: selectedDeviceId } }
+    : { facingMode: "user" };
+}
+
+async function listCameras() {
+  if (!navigator.mediaDevices?.enumerateDevices) return;
+  const cams = (await navigator.mediaDevices.enumerateDevices())
+    .filter(d => d.kind === "videoinput");
+  const sel = $("camera");
+  sel.replaceChildren(...cams.map((c, i) => {
+    const o = document.createElement("option");
+    o.value = c.deviceId;
+    o.textContent = c.label || `Camera ${i + 1}`;
+    return o;
+  }));
+  if (selectedDeviceId) sel.value = selectedDeviceId;
+  // Only worth showing when there's an actual choice to make.
+  sel.hidden = mediaType !== "VIDEO" || cams.length < 2;
+}
+
+function stopPreview() {
+  if (previewStream) { previewStream.getTracks().forEach(t => t.stop()); previewStream = null; }
+}
+
+async function startPreview() {
+  stopPreview();
+  try {
+    previewStream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints() });
+  } catch (err) {
+    alert("Camera access is required for video: " + err);
+    return;
+  }
+  selectedDeviceId = previewStream.getVideoTracks()[0]?.getSettings().deviceId || selectedDeviceId;
+  $("preview").srcObject = previewStream; $("preview").hidden = false; $("preview").play();
+  await listCameras();
+}
 
 async function loadRecipients() {
   const list = await (await fetch("/api/recipients")).json();
@@ -38,7 +78,7 @@ function pickMime() {
 
 async function startRecording() {
   const constraints = mediaType === "VIDEO"
-    ? { audio: true, video: { facingMode: "user" } } : { audio: true };
+    ? { audio: true, video: videoConstraints() } : { audio: true };
   try {
     stream = await navigator.mediaDevices.getUserMedia(constraints);
   } catch (err) {
@@ -46,8 +86,10 @@ async function startRecording() {
     $("record").hidden = false; $("stop").hidden = true; $("record").classList.remove("recording");
     return;
   }
+  stopPreview();
   if (mediaType === "VIDEO") {
     $("preview").srcObject = stream; $("preview").hidden = false; $("preview").play();
+    $("camera").disabled = true;
   }
   mime = pickMime();
   recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
@@ -63,6 +105,7 @@ function onStop() {
   stopped = Date.now();
   blob = new Blob(chunks, { type: mime || chunks[0]?.type || "application/octet-stream" });
   stream.getTracks().forEach(t => t.stop());
+  $("camera").disabled = false;
   if (mediaType !== "VIDEO") {
     $("playback").src = URL.createObjectURL(blob); $("playback").hidden = false;
   }
@@ -118,6 +161,7 @@ async function probeDuration(file) {
 }
 
 async function loadFile(file) {
+  stopPreview(); $("camera").hidden = true;
   blob = file;
   mediaType = file.type.startsWith("video/") ? "VIDEO" : "VOICE";
   mime = file.type || "";
@@ -128,8 +172,18 @@ async function loadFile(file) {
   showMeta();
 }
 
-$("mode-voice").onclick = () => { mediaType = "VOICE"; $("mode-voice").classList.add("active"); $("mode-video").classList.remove("active"); };
-$("mode-video").onclick = () => { mediaType = "VIDEO"; $("mode-video").classList.add("active"); $("mode-voice").classList.remove("active"); };
+$("mode-voice").onclick = () => {
+  mediaType = "VOICE"; $("mode-voice").classList.add("active"); $("mode-video").classList.remove("active");
+  stopPreview(); $("preview").hidden = true; $("camera").hidden = true;
+};
+$("mode-video").onclick = () => {
+  mediaType = "VIDEO"; $("mode-video").classList.add("active"); $("mode-voice").classList.remove("active");
+  $("camera").hidden = false; startPreview();
+};
+$("camera").onchange = (e) => { selectedDeviceId = e.target.value; if (mediaType === "VIDEO") startPreview(); };
+if (navigator.mediaDevices) {
+  navigator.mediaDevices.ondevicechange = () => { if (mediaType === "VIDEO") listCameras(); };
+}
 $("record").onclick = () => { startRecording(); $("record").classList.add("recording"); };
 $("stop").onclick = () => { recorder.stop(); $("stop").hidden = true; $("record").hidden = false; $("record").classList.remove("recording"); };
 $("pick-file").onclick = () => $("file-input").click();
