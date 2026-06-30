@@ -65,3 +65,19 @@ def test_media_no_path_traversal(tmp_path):
 
 def test_root_route_renders(tmp_path):
     assert _client(tmp_path)[0].get("/").status_code == 200
+
+
+def test_has_transcript_flag(tmp_path):
+    from storitad_web import index
+    from storitad_web.ingest import mdfile
+    client, cfg = _client(tmp_path)
+    eid = _capture(client, "Pending entry").json()["id"]
+    summaries = {e.id: e for e in index.list_entries(cfg)}
+    # Freshly captured entry has no real transcript yet.
+    assert summaries[eid].has_transcript is False
+    # Once a transcript is written, the flag flips.
+    path = mdfile.find_entry_md(cfg.archive_root / "entries", eid)
+    fm, body = mdfile.load_fm(path)
+    mdfile.write_fm(path, fm, mdfile.replace_section(body, "Transcript", "Hello world."))
+    summaries = {e.id: e for e in index.list_entries(cfg)}
+    assert summaries[eid].has_transcript is True
