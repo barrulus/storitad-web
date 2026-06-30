@@ -1,15 +1,30 @@
 {% extends "base.html" %}
-{% block title %}Browse — Storitad{% endblock %}
+{% set active_tab = "memories" %}
+{% block title %}Memories — Storitad{% endblock %}
+{% block appbar %}<span class="appbar-title">Memories</span>{% endblock %}
 {% block content %}
-<h1>Entries</h1>
-<ul class="entries">
+{% if entries %}
+<input class="search" id="search" type="search" placeholder="Search memories…" aria-label="Search">
+{% set ns = namespace(group="") %}
+<ul class="entries" id="entries">
 {% for e in entries %}
-  <li><a href="/entries/{{ e.id }}">
-    <span class="subject">{{ e.subject }}</span>
-    <span class="meta">{{ e.captured_at }} · {{ e.type }}{% if e.tags %} · {{ e.tags|join(', ') }}{% endif %}</span>
-  </a></li>
-{% else %}
-  <li>No entries yet. <a href="/">Record one.</a></li>
+  {% set g = e.captured_at|humandate %}
+  {% if g != ns.group %}<li class="date-group">{{ g }}</li>{% set ns.group = g %}{% endif %}
+  <li>
+    <a class="entry-card" href="/entries/{{ e.id }}"
+       data-search="{{ (e.subject ~ ' ' ~ e.tags|join(' '))|lower }}">
+      <span class="subject">{{ '🎬' if e.type == 'video' else '🎙' }} {{ e.subject }}
+        {% if not e.has_transcript %}<span class="badge">Transcribing…</span>{% endif %}</span>
+      <span class="meta">{{ e.captured_at|humandate }}{% if e.tags %} · {{ e.tags|join(', ') }}{% endif %}</span>
+    </a>
+  </li>
 {% endfor %}
 </ul>
+<script src="/static/browse.js"></script>
+{% else %}
+<div class="empty">
+  <p>No memories yet.</p>
+  <a class="btn btn-primary" href="/">Record your first story</a>
+</div>
+{% endif %}
 {% endblock %}

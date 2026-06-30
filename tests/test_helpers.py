@@ -35,3 +35,30 @@ def test_capture_screen_renders(tmp_path):
     r = c.get("/")
     assert r.status_code == 200
     assert "record" in r.text.lower()
+
+
+from datetime import datetime, timezone
+from storitad_web.app import humandate
+
+_NOW = datetime(2026, 6, 30, 12, 0, tzinfo=timezone.utc)
+
+
+def test_humandate_today():
+    assert humandate("2026-06-30T08:00:00Z", now=_NOW) == "Today"
+
+
+def test_humandate_yesterday():
+    assert humandate("2026-06-29T23:00:00Z", now=_NOW) == "Yesterday"
+
+
+def test_humandate_older():
+    assert humandate("2026-06-03T09:00:00Z", now=_NOW) == "3 Jun 2026"
+
+
+def test_humandate_empty():
+    assert humandate("", now=_NOW) == ""
+    assert humandate(None, now=_NOW) == ""
+
+
+def test_humandate_unparseable():
+    assert humandate("not-a-date", now=_NOW) == ""

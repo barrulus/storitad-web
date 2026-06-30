@@ -20,6 +20,7 @@ class EntrySummary:
     mood: str | None
     author: str | None
     media: str | None
+    has_transcript: bool
 
 
 def _entries_root(cfg: AppConfig) -> Path:
@@ -32,9 +33,10 @@ def list_entries(cfg: AppConfig) -> list[EntrySummary]:
     if not root.exists():
         return out
     for md in root.rglob("*.md"):
-        fm, _ = mdfile.load_fm(md)
+        fm, body = mdfile.load_fm(md)
         if not fm:
             continue
+        transcript = _section(body, "Transcript")
         out.append(EntrySummary(
             id=fm.get("id", md.stem),
             subject=fm.get("subject", "(untitled)"),
@@ -45,6 +47,7 @@ def list_entries(cfg: AppConfig) -> list[EntrySummary]:
             mood=fm.get("mood"),
             author=fm.get("author"),
             media=fm.get("media"),
+            has_transcript=bool(transcript) and transcript != "(no transcript)",
         ))
     out.sort(key=lambda e: e.captured_at, reverse=True)
     return out

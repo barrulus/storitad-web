@@ -1,9 +1,13 @@
 {% extends "base.html" %}
 {% block title %}{{ entry.fm.subject }} — Storitad{% endblock %}
+{% block appbar %}
+  <a class="appbar-back" href="/entries">‹</a>
+  <span class="appbar-title">{{ entry.fm.subject }}</span>
+  <a class="appbar-action" href="/entries/{{ entry.fm.id }}/edit">Edit</a>
+{% endblock %}
 {% block content %}
 <article>
-  <h1>{{ entry.fm.subject }}</h1>
-  <p class="meta">{{ entry.fm.captured_at }} · {{ entry.fm.type }}
+  <p class="meta">{{ entry.fm.captured_at|humandate }} · {{ entry.fm.type }}
      {% if entry.fm.mood %}· {{ entry.fm.mood }}{% endif %}</p>
   {% if entry.media_url %}
     {% if entry.fm.type == 'video' %}
@@ -13,8 +17,11 @@
     {% endif %}
   {% endif %}
   <h2>Transcript</h2>
-  <p>{% if entry.transcript and entry.transcript != '(no transcript)' %}{{ entry.transcript }}{% else %}(transcribing…){% endif %}</p>
-  {% if entry.notes %}<h2>Notes</h2><p>{{ entry.notes }}</p>{% endif %}
-  <p><a href="/entries/{{ entry.fm.id }}/edit">Edit</a></p>
+  {% if entry.transcript and entry.transcript != '(no transcript)' %}
+    <p>{{ entry.transcript }}</p>
+  {% else %}
+    <p class="pending">Transcribing…</p>
+  {% endif %}
+  {% if entry.notes %}<h2>Notes</h2><div class="card">{{ entry.notes }}</div>{% endif %}
 </article>
 {% endblock %}

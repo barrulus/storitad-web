@@ -16,7 +16,7 @@ form.onsubmit = async (e) => {
   if (r.ok) location.href = "/entries/" + id; else alert("Save failed: " + r.status);
 };
 document.getElementById("delete").onclick = async () => {
-  if (!confirm("Delete this entry?")) return;
+  if (!confirm("Delete this entry? This moves it to trash.")) return;
   const r = await fetch("/api/entries/" + form.dataset.id, { method: "DELETE" });
   if (r.ok) location.href = "/entries"; else alert("Delete failed: " + r.status);
 };

@@ -1,27 +1,36 @@
 {% extends "base.html" %}
+{% set active_tab = "record" %}
 {% block title %}Record — Storitad{% endblock %}
+{% block appbar %}<span class="appbar-title" id="greeting">Record</span>{% endblock %}
 {% block content %}
-<h1>Record</h1>
-<div class="mode">
+<div class="segmented" id="mode">
   <button id="mode-voice" class="active">🎙 Voice</button>
   <button id="mode-video">🎬 Video</button>
 </div>
 <video id="preview" playsinline muted hidden></video>
-<div class="controls">
+<div class="record-hero">
   <button id="record">● Record</button>
   <button id="stop" hidden>■ Stop</button>
   <span id="timer">0:00</span>
+  <button type="button" id="pick-file" class="upload-link">or upload a file</button>
+  <input type="file" id="file-input" accept="audio/*,video/*" hidden>
 </div>
 <audio id="playback" controls hidden></audio>
-<form id="meta" hidden>
-  <label>Subject <input name="subject" required></label>
-  <fieldset id="recipients"><legend>Recipients</legend></fieldset>
-  <label>Mood <input name="mood" placeholder="happy"></label>
-  <label>Tags <input name="tags" placeholder="comma,separated"></label>
-  <div id="recent-tags"></div>
-  <label>Notes <textarea name="notes"></textarea></label>
-  <label><input type="checkbox" id="use-location"> Attach location</label>
-  <button type="submit">Save entry</button>
+<form id="meta" class="card" hidden>
+  <label>Subject</label><input name="subject" required>
+  <label>Recipients</label><div class="chips" id="recipients"></div>
+  <label>Mood</label><input name="mood" placeholder="happy">
+  <div class="chips" id="mood-quick">
+    <button type="button" class="chip" data-mood="😊 happy">😊</button>
+    <button type="button" class="chip" data-mood="😌 calm">😌</button>
+    <button type="button" class="chip" data-mood="😢 sad">😢</button>
+    <button type="button" class="chip" data-mood="🤔 thoughtful">🤔</button>
+  </div>
+  <label>Tags</label><input name="tags" placeholder="comma, separated">
+  <div class="chips" id="recent-tags"></div>
+  <label>Notes</label><textarea name="notes"></textarea>
+  <label><input type="checkbox" id="use-location" style="width:auto"> Attach location</label>
+  <button type="submit" class="btn-primary">Save story</button>
   <progress id="upload" hidden max="100"></progress>
 </form>
 <script src="/static/app.js"></script>
