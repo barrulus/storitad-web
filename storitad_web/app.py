@@ -26,6 +26,24 @@ def _parse_captured_at(value: str | None) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc)
 
 
+def humandate(value: str | None, *, now: datetime | None = None) -> str:
+    if not value:
+        return ""
+    try:
+        dt = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return ""
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    ref = (now or datetime.now(timezone.utc)).astimezone(dt.tzinfo)
+    days = (ref.date() - dt.date()).days
+    if days == 0:
+        return "Today"
+    if days == 1:
+        return "Yesterday"
+    return f"{dt.day} {dt.strftime('%b')} {dt.year}"
+
+
 def create_app(cfg: AppConfig, enqueue: Callable[[str], None] | None = None) -> FastAPI:
     if enqueue is None:
         worker = Worker(cfg)
@@ -84,6 +102,7 @@ def create_app(cfg: AppConfig, enqueue: Callable[[str], None] | None = None) -> 
             raise HTTPException(status_code=404, detail="entry not found")
 
     templates = Jinja2Templates(directory=str(_PKG_DIR / "templates"))
+    templates.env.filters["humandate"] = humandate
     application.mount("/static", StaticFiles(directory=str(_PKG_DIR / "static")), name="static")
 
     from . import recipients as recipients_mod
