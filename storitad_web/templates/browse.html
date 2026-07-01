@@ -12,8 +12,8 @@
   {% if g != ns.group %}<li class="date-group">{{ g }}</li>{% set ns.group = g %}{% endif %}
   <li>
     <a class="entry-card" href="/entries/{{ e.id }}"
-       data-search="{{ (e.subject ~ ' ' ~ e.tags|join(' '))|lower }}">
-      <span class="subject">{{ '🎬' if e.type == 'video' else '🎙' }} {{ e.subject }}
+       data-search="{{ (e.title ~ ' ' ~ e.tags|join(' '))|lower }}">
+      <span class="subject">{{ '🎬' if e.type == 'video' else '🎙' }} {{ e.title }}
         {% if not e.has_transcript %}<span class="badge">Transcribing…</span>{% endif %}</span>
       <span class="meta">{{ e.captured_at|humandate }}{% if e.tags %} · {{ e.tags|join(', ') }}{% endif %}</span>
     </a>
