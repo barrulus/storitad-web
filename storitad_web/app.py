@@ -14,6 +14,7 @@ from fastapi.templating import Jinja2Templates
 
 from . import auth, index, store
 from .config import AppConfig
+from .display import humandate
 from .entries import CaptureMeta, synthesize_sidecar
 from .transcription import Worker
 
@@ -24,24 +25,6 @@ def _parse_captured_at(value: str | None) -> datetime:
     if not value:
         return datetime.now(timezone.utc)
     return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc)
-
-
-def humandate(value: str | None, *, now: datetime | None = None) -> str:
-    if not value:
-        return ""
-    try:
-        dt = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-    except ValueError:
-        return ""
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    ref = (now or datetime.now(timezone.utc)).astimezone(dt.tzinfo)
-    days = (ref.date() - dt.date()).days
-    if days == 0:
-        return "Today"
-    if days == 1:
-        return "Yesterday"
-    return f"{dt.day} {dt.strftime('%b')} {dt.year}"
 
 
 def create_app(cfg: AppConfig, enqueue: Callable[[str], None] | None = None) -> FastAPI:

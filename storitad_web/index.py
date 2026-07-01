@@ -5,14 +5,17 @@ from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
+from . import recipients as recipients_mod
 from .ingest import mdfile
 from .config import AppConfig
+from .display import entry_title
 
 
 @dataclass
 class EntrySummary:
     id: str
     subject: str
+    title: str
     type: str
     captured_at: str
     recipients: list
@@ -21,6 +24,10 @@ class EntrySummary:
     author: str | None
     media: str | None
     has_transcript: bool
+
+
+def _recipient_labels(cfg: AppConfig) -> dict:
+    return {r["id"]: r.get("label", r["id"]) for r in recipients_mod.load(cfg)}
 
 
 def _entries_root(cfg: AppConfig) -> Path:
@@ -32,17 +39,22 @@ def list_entries(cfg: AppConfig) -> list[EntrySummary]:
     root = _entries_root(cfg)
     if not root.exists():
         return out
+    rec_map = _recipient_labels(cfg)
     for md in root.rglob("*.md"):
         fm, body = mdfile.load_fm(md)
         if not fm:
             continue
         transcript = _section(body, "Transcript")
+        subject = fm.get("subject", "(untitled)")
+        captured_at = str(fm.get("captured_at", ""))
+        recips = fm.get("recipients", [])
         out.append(EntrySummary(
             id=fm.get("id", md.stem),
-            subject=fm.get("subject", "(untitled)"),
+            subject=subject,
+            title=entry_title(subject, recips, captured_at, rec_map),
             type=fm.get("type", "voice"),
-            captured_at=str(fm.get("captured_at", "")),
-            recipients=fm.get("recipients", []),
+            captured_at=captured_at,
+            recipients=recips,
             tags=fm.get("tags", []),
             mood=fm.get("mood"),
             author=fm.get("author"),
@@ -83,6 +95,9 @@ def load_entry(cfg: AppConfig, entry_id: str) -> dict | None:
     media = fm.get("media")
     return {
         "fm": fm,
+        "title": entry_title(
+            fm.get("subject"), fm.get("recipients", []),
+            str(fm.get("captured_at", "")), _recipient_labels(cfg)),
         "transcript": _section(body, "Transcript"),
         "notes": _section(body, "Notes"),
         "media_rel": f"{rel}/{media}" if media else "",

@@ -67,6 +67,13 @@ audio,video{width:100%;margin:1rem 0;border-radius:12px}
 #timer{font-variant-numeric:tabular-nums;color:var(--muted)}
 .upload-link{background:none;border:0;color:var(--accent);text-decoration:underline}
 
+/* collapsible "add details" */
+.more-details{margin:.6rem 0}
+.more-details>summary{cursor:pointer;color:var(--accent);font-size:.9rem;list-style:none;padding:.3rem 0}
+.more-details>summary::-webkit-details-marker{display:none}
+.more-details>summary::before{content:"＋ "}
+.more-details[open]>summary::before{content:"− "}
+
 /* details / generic card */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
   box-shadow:var(--shadow);padding:var(--pad);margin:1rem 0}

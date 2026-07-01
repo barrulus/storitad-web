@@ -18,7 +18,6 @@
 </div>
 <audio id="playback" controls hidden></audio>
 <form id="meta" class="card" hidden>
-  <label>Subject</label><input name="subject" required>
   <label>Recipients</label><div class="chips" id="recipients"></div>
   <label>Mood</label><input name="mood" placeholder="happy">
   <div class="chips" id="mood-quick">
@@ -27,10 +26,14 @@
     <button type="button" class="chip" data-mood="😢 sad">😢</button>
     <button type="button" class="chip" data-mood="🤔 thoughtful">🤔</button>
   </div>
-  <label>Tags</label><input name="tags" placeholder="comma, separated">
-  <div class="chips" id="recent-tags"></div>
   <label>Notes</label><textarea name="notes"></textarea>
   <label><input type="checkbox" id="use-location" style="width:auto"> Attach location</label>
+  <details class="more-details">
+    <summary>Add details</summary>
+    <label>Subject</label><input name="subject">
+    <label>Tags</label><input name="tags" placeholder="comma, separated">
+    <div class="chips" id="recent-tags"></div>
+  </details>
   <button type="submit" class="btn-primary">Save story</button>
   <progress id="upload" hidden max="100"></progress>
 </form>
