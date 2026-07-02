@@ -5,7 +5,7 @@ const MODEL_URL = "/static/vendor/mediapipe/selfie_segmenter.tflite";
 const WASM_ROOT = "/static/vendor/mediapipe/wasm";
 const SLOW_MS = 60;         // per-frame budget before we call it "too slow"
 const SAMPLE_FRAMES = 30;   // frames to average before deciding
-const PERSON_NONZERO = true; // selfie mask: person pixels are nonzero (verify on device)
+const PERSON_NONZERO = false; // selfie mask: person pixels are zero (verified on device)
 
 let segmenter = null, ready = false;
 let kind = "off", bgImage = null;
