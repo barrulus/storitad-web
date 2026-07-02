@@ -13,9 +13,9 @@ def test_vendored_model_and_wasm_present():
     assert (wasm / "vision_wasm_internal.wasm").is_file()
 
 
-def test_background_placeholders_present():
-    assert (STATIC / "backgrounds/office.svg").is_file()
-    assert (STATIC / "backgrounds/bookshelf.svg").is_file()
+def test_background_images_present():
+    assert (STATIC / "backgrounds/mushroom.webp").is_file()
+    assert (STATIC / "backgrounds/meadow.webp").is_file()
 
 
 def test_package_data_covers_new_dirs():

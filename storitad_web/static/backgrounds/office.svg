@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
-  <rect width="1280" height="720" fill="#E8DECF"/>
-  <rect y="520" width="1280" height="200" fill="#C9B89B"/>
-  <rect x="120" y="180" width="360" height="240" rx="8" fill="#B9A98C"/>
-  <rect x="800" y="160" width="300" height="120" rx="8" fill="#B9A98C"/>
-  <text x="640" y="380" font-family="Georgia, serif" font-size="42" fill="#6E635A" text-anchor="middle">office (placeholder)</text>
-</svg>
