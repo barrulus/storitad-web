@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -19,6 +20,18 @@ from .entries import CaptureMeta, synthesize_sidecar
 from .transcription import Worker
 
 _PKG_DIR = Path(__file__).resolve().parent
+
+
+def _asset_version() -> str:
+    """Short content hash of the churny static assets, used to cache-bust the
+    `?v=` query on script/style URLs so a redeploy always serves fresh JS/CSS."""
+    h = hashlib.sha256()
+    static = _PKG_DIR / "static"
+    for name in ["effects.js", "app.js", "edit.js", "browse.js", "style.css"]:
+        p = static / name
+        if p.exists():
+            h.update(p.read_bytes())
+    return h.hexdigest()[:8]
 
 
 def _parse_captured_at(value: str | None) -> datetime:
@@ -86,6 +99,7 @@ def create_app(cfg: AppConfig, enqueue: Callable[[str], None] | None = None) -> 
 
     templates = Jinja2Templates(directory=str(_PKG_DIR / "templates"))
     templates.env.filters["humandate"] = humandate
+    templates.env.globals["asset_v"] = _asset_version()
     application.mount("/static", StaticFiles(directory=str(_PKG_DIR / "static")), name="static")
 
     from . import recipients as recipients_mod
