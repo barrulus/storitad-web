@@ -18,7 +18,7 @@
 <p id="fx-notice" class="fx-notice" hidden></p>
 <video id="preview" playsinline muted hidden></video>
 <canvas id="fx-canvas" class="fx-canvas" hidden></canvas>
-<script type="module" src="/static/effects.js"></script>
+<script type="module" src="/static/effects.js?v={{ asset_v }}"></script>
 <div class="record-hero">
   <button id="record">● Record</button>
   <button id="stop" hidden>■ Stop</button>
@@ -47,5 +47,5 @@
   <button type="submit" class="btn-primary">Save story</button>
   <progress id="upload" hidden max="100"></progress>
 </form>
-<script src="/static/app.js"></script>
+<script src="/static/app.js?v={{ asset_v }}"></script>
 {% endblock %}
