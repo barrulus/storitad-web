@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#DED2BE"/>
+  <g fill="#B9A98C">
+    <rect x="80"  y="120" width="1120" height="24"/>
+    <rect x="80"  y="300" width="1120" height="24"/>
+    <rect x="80"  y="480" width="1120" height="24"/>
+  </g>
+  <text x="640" y="640" font-family="Georgia, serif" font-size="42" fill="#6E635A" text-anchor="middle">bookshelf (placeholder)</text>
+</svg>
