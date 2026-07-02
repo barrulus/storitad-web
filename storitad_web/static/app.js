@@ -1,7 +1,44 @@
 let mediaType = "VOICE", stream, recorder, chunks = [], blob, mime, started, stopped;
 let previewStream = null, selectedDeviceId = "";
+let currentEffect = "off", currentEffectImage = "", effectsReady = false, effectsChecked = false;
 
 const $ = (id) => document.getElementById(id);
+
+function effectActive() { return mediaType === "VIDEO" && currentEffect !== "off" && effectsReady; }
+
+function showNotice(msg) {
+  const n = $("fx-notice");
+  if (msg) { n.textContent = msg; n.hidden = false; } else { n.hidden = true; }
+}
+
+async function ensureEffects() {
+  if (effectsChecked) return;
+  effectsChecked = true;
+  if (!window.Effects || !window.Effects.isSupported()) {
+    showNotice("Background effects aren't supported on this device.");
+    return;
+  }
+  window.Effects.onDegraded(() => {
+    currentEffect = "off"; effectsReady = false;
+    [...$("effects").children].forEach(b => b.classList.toggle("active", b.dataset.effect === "off"));
+    $("effects").hidden = true;
+    applyPreviewRender();
+    showNotice("Background effects are too slow on this device — recording without them.");
+  });
+  effectsReady = await window.Effects.init();
+  if (!effectsReady) showNotice("Background effects couldn't load — recording normally.");
+}
+
+function applyPreviewRender() {
+  if (effectActive()) {
+    window.Effects.setEffect(currentEffect, { imageUrl: currentEffectImage });
+    window.Effects.start($("preview"), $("fx-canvas"));
+    $("fx-canvas").hidden = false; $("preview").hidden = true;
+  } else {
+    if (window.Effects) window.Effects.stop();
+    $("fx-canvas").hidden = true; $("preview").hidden = mediaType !== "VIDEO";
+  }
+}
 
 function videoConstraints() {
   return selectedDeviceId
@@ -38,7 +75,8 @@ async function startPreview() {
     return;
   }
   selectedDeviceId = previewStream.getVideoTracks()[0]?.getSettings().deviceId || selectedDeviceId;
-  $("preview").srcObject = previewStream; $("preview").hidden = false; $("preview").play();
+  $("preview").srcObject = previewStream; $("preview").play();
+  applyPreviewRender();
   await listCameras();
 }
 
@@ -87,12 +125,23 @@ async function startRecording() {
     return;
   }
   stopPreview();
+  let recordStream = stream;
   if (mediaType === "VIDEO") {
-    $("preview").srcObject = stream; $("preview").hidden = false; $("preview").play();
+    $("preview").srcObject = stream; $("preview").play();
+    if (effectActive()) {
+      window.Effects.setEffect(currentEffect, { imageUrl: currentEffectImage });
+      window.Effects.start($("preview"), $("fx-canvas"));
+      $("fx-canvas").hidden = false; $("preview").hidden = true;
+      const fx = window.Effects.getOutputStream(30);
+      if (fx) recordStream = new MediaStream([...fx.getVideoTracks(), ...stream.getAudioTracks()]);
+    } else {
+      $("preview").hidden = false; $("fx-canvas").hidden = true;
+    }
     $("camera").disabled = true;
+    [...$("effects").children].forEach(b => b.disabled = true);
   }
   mime = pickMime();
-  recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+  recorder = new MediaRecorder(recordStream, mime ? { mimeType: mime } : undefined);
   chunks = [];
   recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
   recorder.onstop = onStop;
@@ -105,7 +154,9 @@ function onStop() {
   stopped = Date.now();
   blob = new Blob(chunks, { type: mime || chunks[0]?.type || "application/octet-stream" });
   stream.getTracks().forEach(t => t.stop());
+  if (window.Effects) window.Effects.stop();
   $("camera").disabled = false;
+  [...$("effects").children].forEach(b => b.disabled = false);
   if (mediaType !== "VIDEO") {
     $("playback").src = URL.createObjectURL(blob); $("playback").hidden = false;
   }
@@ -161,7 +212,8 @@ async function probeDuration(file) {
 }
 
 async function loadFile(file) {
-  stopPreview(); $("camera").hidden = true;
+  stopPreview(); if (window.Effects) window.Effects.stop();
+  $("camera").hidden = true; $("effects").hidden = true; $("fx-canvas").hidden = true; showNotice("");
   blob = file;
   mediaType = file.type.startsWith("video/") ? "VIDEO" : "VOICE";
   mime = file.type || "";
@@ -174,13 +226,23 @@ async function loadFile(file) {
 
 $("mode-voice").onclick = () => {
   mediaType = "VOICE"; $("mode-voice").classList.add("active"); $("mode-video").classList.remove("active");
-  stopPreview(); $("preview").hidden = true; $("camera").hidden = true;
+  stopPreview(); if (window.Effects) window.Effects.stop();
+  $("preview").hidden = true; $("fx-canvas").hidden = true; $("camera").hidden = true; $("effects").hidden = true; showNotice("");
 };
-$("mode-video").onclick = () => {
+$("mode-video").onclick = async () => {
   mediaType = "VIDEO"; $("mode-video").classList.add("active"); $("mode-voice").classList.remove("active");
-  $("camera").hidden = false; startPreview();
+  $("camera").hidden = false;
+  await ensureEffects();
+  $("effects").hidden = !effectsReady;
+  startPreview();
 };
 $("camera").onchange = (e) => { selectedDeviceId = e.target.value; if (mediaType === "VIDEO") startPreview(); };
+$("effects").onclick = (e) => {
+  const b = e.target.closest("[data-effect]"); if (!b) return;
+  currentEffect = b.dataset.effect; currentEffectImage = b.dataset.image || "";
+  [...$("effects").children].forEach(c => c.classList.toggle("active", c === b));
+  if (mediaType === "VIDEO") applyPreviewRender();
+};
 if (navigator.mediaDevices) {
   navigator.mediaDevices.ondevicechange = () => { if (mediaType === "VIDEO") listCameras(); };
 }

@@ -8,7 +8,17 @@
   <button id="mode-video">🎬 Video</button>
 </div>
 <select id="camera" class="camera-select" hidden aria-label="Camera"></select>
+<div id="effects" class="effects" hidden aria-label="Background effect">
+  <button type="button" class="chip active" data-effect="off">None</button>
+  <button type="button" class="chip" data-effect="blur">Blur</button>
+  <button type="button" class="chip" data-effect="image" data-image="/static/backgrounds/office.svg">Office</button>
+  <button type="button" class="chip" data-effect="image" data-image="/static/backgrounds/bookshelf.svg">Bookshelf</button>
+  <button type="button" class="chip" data-effect="gradient">Warm</button>
+</div>
+<p id="fx-notice" class="fx-notice" hidden></p>
 <video id="preview" playsinline muted hidden></video>
+<canvas id="fx-canvas" class="fx-canvas" hidden></canvas>
+<script type="module" src="/static/effects.js"></script>
 <div class="record-hero">
   <button id="record">● Record</button>
   <button id="stop" hidden>■ Stop</button>

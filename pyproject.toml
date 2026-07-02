@@ -24,4 +24,11 @@ where = ["."]
 include = ["storitad_web*"]
 
 [tool.setuptools.package-data]
-storitad_web = ["templates/*.html", "static/*", "static/icons/*"]
+storitad_web = [
+    "templates/*.html",
+    "static/*",
+    "static/icons/*",
+    "static/backgrounds/*",
+    "static/vendor/mediapipe/*",
+    "static/vendor/mediapipe/wasm/*",
+]
