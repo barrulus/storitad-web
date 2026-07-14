@@ -9,7 +9,23 @@
   outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        # inline-snapshot's own test suite is broken in current nixos-unstable
+        # (a black-version mismatch in its test_docs.py). It's a check-only
+        # dependency of fastapi, so skip its checkPhase to unblock the build.
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [
+            (final: prev: {
+              pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+                (pyFinal: pyPrev: {
+                  inline-snapshot = pyPrev.inline-snapshot.overridePythonAttrs (_: {
+                    doCheck = false;
+                  });
+                })
+              ];
+            })
+          ];
+        };
         # Runtime + test Python deps. The package output (buildPythonApplication
         # wrapping whisper-cli + ffmpeg onto PATH) is added in the packaging task.
         pythonEnv = pkgs.python312.withPackages (ps: with ps; [
